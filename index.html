@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yor.iAPP Presensi</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --dark: #0f172a;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0f172a, #1e293b, #0369a1, #1e1b4b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Layout Main Menu */
+        #menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        .logo-title {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .sub-title {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            max-width: 500px;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 1.2s ease forwards;
+        }
+
+        /* Card Button Style */
+        .card-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 20px;
+            border-radius: 24px;
+            width: 260px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-12px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-btn .icon-wrapper {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .card-btn h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .card-btn p {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            line-height: 1.4;
+        }
+
+        /* Iframe Container */
+        #iframe-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #iframe-container.active {
+            display: block;
+            opacity: 1;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Floating Controls */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10000;
+        }
+
+        .back-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 15px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Loading Indicator */
+        #loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .card-btn { width: 100%; max-width: 300px; }
+            .logo-title { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate"></div>
+
+    <main id="menu-container">
+        <h1 class="logo-title">YOR.IAPP</h1>
+        <p class="sub-title">Sistem Presensi Terintegrasi & Monitoring Pegawai secara Real-time.</p>
+        
+        <div class="button-group">
+            <!-- Tombol Monitoring -->
+            <div class="card-btn" onclick="openApp('https://script.google.com/macros/s/AKfycbyjzVmFk2YosZLXEsSdAdDy0Y_2Qw6tGH-23Mj-94zmS7t9_sLfn2SHEUznbojwpyI-/exec')">
+                <div class="icon-wrapper"><i data-lucide="layout-dashboard"></i></div>
+                <h3>Monitoring</h3>
+                <p>Cek Presensi & Pengajuan PSW Anda</p>
+            </div>
+
+            <!-- Tombol C-Panel -->
+            <div class="card-btn" onclick="openApp('https://script.google.com/macros/s/AKfycbyjzVmFk2YosZLXEsSdAdDy0Y_2Qw6tGH-23Mj-94zmS7t9_sLfn2SHEUznbojwpyI-/exec?page=cpanel')">
+                <div class="icon-wrapper"><i data-lucide="settings"></i></div>
+                <h3>C-PANEL</h3>
+                <p>Pengaturan & Dashboard Admin</p>
+            </div>
+        </div>
+    </main>
+
+    <section id="iframe-container">
+        <div id="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="back-btn" onclick="closeApp()">
+                <i data-lucide="arrow-left"></i> Menu Utama
+            </button>
+        </div>
+        
+        <iframe id="app-frame" src="" onload="hideLoading()"></iframe>
+    </section>
+
+    <script>
+        // Inisialisasi Ikon
+        lucide.createIcons();
+
+        const menu = document.getElementById('menu-container');
+        const container = document.getElementById('iframe-container');
+        const frame = document.getElementById('app-frame');
+        const loading = document.getElementById('loading-overlay');
+
+        function openApp(url) {
+            // Animasi transisi keluar
+            menu.style.opacity = '0';
+            menu.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                loading.style.display = 'flex';
+                frame.src = url;
+                container.style.display = 'block';
+                
+                // Trigger reflow untuk animasi
+                setTimeout(() => {
+                    container.classList.add('active');
+                }, 50);
+            }, 300);
+        }
+
+        function closeApp() {
+            container.classList.remove('active');
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+                frame.src = '';
+                
+                // Kembalikan menu utama
+                menu.style.opacity = '1';
+                menu.style.transform = 'scale(1)';
+            }, 400);
+        }
+
+        function hideLoading() {
+            if(frame.src !== "") {
+                setTimeout(() => {
+                    loading.style.opacity = '0';
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        loading.style.opacity = '1';
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        // Handle Back Button Android/Browser
+        window.onpopstate = function() {
+            if(container.style.display === 'block') {
+                closeApp();
+            }
+        };
+    </script>
+</body>
+</html>
